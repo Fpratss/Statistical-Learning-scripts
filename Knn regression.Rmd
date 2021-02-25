@@ -1,0 +1,96 @@
+---
+title: "KNN regression"
+author: "Ferran Ibáñez"
+date: "15/02/2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+The k nearest-neighbor estimator of $m(t) = E(Y |X = t)$ is defined as
+$$\hat{m}(t)=\frac{1}{k} \sum_{i \in N_{k}(t)}y_i$$
+where $N_k(t)$ is the neighborhood of $t$ defined by the $k$ closest points $x_i$ in the training sample.
+
+We first read the Boston housing data from the library MASS.
+```{r}
+library(MASS)
+data(Boston)
+help(Boston)
+
+
+x <- Boston$lstat
+y <- Boston$medv
+xy <- data.frame(x,y)
+```
+
+\section{Exercices}
+
+\subsection{1. Write a function for computing the k-nn estimator of
+ $m(t)$ for a given real value $t$}
+
+The parameters used by the function are the df values from the training sample, the new observation $t$ and the $k$ number of nearest neighbours. We first compute the distance between all the points to the new one. Then we sort those distances and, finally, we compute the mean of the $y_i$ values based on the k nearest points to the new observation. The $C$ and $R$ parameters are used to grid the plots in case we want to compare the estimation using different k neighborhoods. 
+
+```{r}
+knn_regression<-function(t,df,k, C, R){
+  # We create an empty df
+  knn_reg <- data.frame(matrix(nrow = length(t), ncol = 2))
+  
+  # A list to save the different k's
+  ks <- list()
+  
+  # K values:
+  k_s <- k
+  
+  # A list of empty df
+  for (i in k_s) {
+    ks[[i]] <- knn_reg
+  }
+  # We generate the knn regressions:
+  for (j in k_s) {
+    for (p in t) {
+      d_st_xy <- as.matrix(dist(c(p,df[,1])))[1,-1]
+      d_st_xy_k <- sort(d_st_xy,partial=j)[j]
+      N_st_k <- unname(which(d_st_xy <= d_st_xy_k))
+      knn_reg[,1] <- seq(1,length(t))
+      # Now we compute the knn estimator by the given definition of m(t):
+      knn_reg[,2][p] <- sum(df[N_st_k,2])/j
+    }
+    # We save the estimated values in a list
+    ks[[j]] <- knn_reg[,c(1, 2)]
+  }
+  # We generate different plots according to the k neighbourhoods:
+  par(mfrow = c(R,C))
+  for (z in k_s) {
+    plot(df$y ~ df$x,
+         data = Boston,
+         cex = .8,
+         col = "dodgerblue",
+         main = paste0("k = ",z),
+         ylab = "y (medv)",
+         xlab = "x (lstat)")
+    lines(ks[[z]][,1], ks[[z]][,2], col = "darkorange", lwd = 2.5)
+    points(ks[[z]][,1], ks[[z]][,2], col = "yellow", lwd = 0.5)
+  }
+}
+```
+
+
+
+\subsection{3/4. Estimate $m(t[i])$ for $i=1,...,40$ using $k=50$. Plot $y$ against $x$. Then represent the estimated regression function.}
+
+We just run the function we created before:
+
+```{r}
+knn_regression(1:40,xy,50, 1,1)
+```
+
+
+\subsection{5. Repeat the same exercise using different values of k.}
+
+
+```{r,fig.width=10, fig.height=10}
+k<-c(3,10,50,200)
+knn_regression(1:70,xy,k,2,2)
+
+```
+
