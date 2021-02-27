@@ -74,12 +74,11 @@ ridge_k_fold<- function(X.val,Y.val,lambda.v,K){
 
 #An example:
 
-X.val<-
-Y.val<-
+X.val<-#must be scaled
+Y.val<-#must be centered
 lambda.max <- 1e5
 n.lambdas <- 25
 lambda.v <- exp(seq(0,log(lambda.max+1),length=n.lambdas))-1
-k<-25
 
 #Check
 ridge_k_fold(X.val,Y.val,lambda.v,k)
