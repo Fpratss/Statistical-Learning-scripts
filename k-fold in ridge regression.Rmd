@@ -9,32 +9,43 @@ output:
 
 
 ```{r}
-prostate <- 
-  read.delim("~/Desktop/2nQ/Statistical Learning/Assignments/Ridge Regression/Prostate Cancer data.txt")
+df <- 
+  read.delim("Your df")
 
 ```
 
 ```{r}
+
 ridge_k_fold<- function(X.val,Y.val,lambda.v,K){
+
   prostate<-cbind(Y.val,X.val)
   n <- dim(X.val)[1]
   p <- dim(X.val)[2]
   n.lambdas<-length(lambda.v)
+  
   #########
   #Creation of the k-fold indexes
   #########
-  folds <- cut(seq(1,nrow(prostate)),breaks=k,labels=FALSE)
+  
+  folds <- cut(seq(1,nrow(df)),breaks=k,labels=FALSE)
+  
+  
   #######
-  #Lasso estimation
+  #Ridge estimation
   #######
+  
   beta.path<-matrix(0,nrow=n.lambdas, ncol=p) #Here we will save the beta values for each lambda
   PMSE.CV<-numeric(n.lambdas) #Here we will save PMSE for each lambda value
-  for (l in 1:n.lambdas){#We create the loop for the lambdas:
+  
+  #We create the loop for the lambdas:
+  for (l in 1:n.lambdas){
+  
     #For each lambda, we do a k-fold validation:
+    
     for(i in 1:k){ #loop for each k
       testIndexes <- which(folds==i,arr.ind=TRUE)
-      test.data <- prostate[testIndexes, ]
-      train.data <- prostate[-testIndexes, ]
+      test.data <- df[testIndexes, ]
+      train.data <- df[-testIndexes, ]
       
       #Model estimation
       X<-as.matrix(train.data[,2:length(train.data)])
@@ -61,14 +72,16 @@ ridge_k_fold<- function(X.val,Y.val,lambda.v,K){
   plot(log(1+lambda.v), PMSE.CV)
 }
 
-X.val<-prostate[,1:8]
-Y.val<-prostate[,10]
+#An example:
+
+X.val<-df[,1:8]
+Y.val<-df[,10]
 lambda.max <- 1e5
 n.lambdas <- 25
 lambda.v <- exp(seq(0,log(lambda.max+1),length=n.lambdas))-1
 k<-25
 
-
+#Check
 ridge_k_fold(X.val,Y.val,lambda.v,k)
 ```
 
