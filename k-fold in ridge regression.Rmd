@@ -74,8 +74,8 @@ ridge_k_fold<- function(X.val,Y.val,lambda.v,K){
 
 #An example:
 
-X.val<-df[,1:8]
-Y.val<-df[,10]
+X.val<-
+Y.val<-
 lambda.max <- 1e5
 n.lambdas <- 25
 lambda.v <- exp(seq(0,log(lambda.max+1),length=n.lambdas))-1
