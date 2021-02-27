@@ -1,0 +1,74 @@
+---
+title: "K-fold validation in Ridge Regression"
+author: 'Ferran Ibáñez Prat'
+date: "2/27/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r}
+prostate <- 
+  read.delim("~/Desktop/2nQ/Statistical Learning/Assignments/Ridge Regression/Prostate Cancer data.txt")
+
+```
+
+```{r}
+ridge_k_fold<- function(X.val,Y.val,lambda.v,K){
+  prostate<-cbind(Y.val,X.val)
+  n <- dim(X.val)[1]
+  p <- dim(X.val)[2]
+  n.lambdas<-length(lambda.v)
+  #########
+  #Creation of the k-fold indexes
+  #########
+  folds <- cut(seq(1,nrow(prostate)),breaks=k,labels=FALSE)
+  #######
+  #Lasso estimation
+  #######
+  beta.path<-matrix(0,nrow=n.lambdas, ncol=p) #Here we will save the beta values for each lambda
+  PMSE.CV<-numeric(n.lambdas) #Here we will save PMSE for each lambda value
+  for (l in 1:n.lambdas){#We create the loop for the lambdas:
+    #For each lambda, we do a k-fold validation:
+    for(i in 1:k){ #loop for each k
+      testIndexes <- which(folds==i,arr.ind=TRUE)
+      test.data <- prostate[testIndexes, ]
+      train.data <- prostate[-testIndexes, ]
+      
+      #Model estimation
+      X<-as.matrix(train.data[,2:length(train.data)])
+      XtX<-t(X)%*%X
+      Y<-train.data[,1]
+      
+      lambda <- lambda.v[l]
+      H.lambda.aux <- t(solve(XtX + lambda*diag(1,p))) %*% t(X) 
+      beta.path[l,] <-  as.matrix(H.lambda.aux) %*% Y  #Beta coefficients
+      H.lambda <- X %*% as.matrix(H.lambda.aux) #This is the lambda hat matrix
+      
+      #PMSE
+      X.test<- test.data[,2:length(train.data)]
+      Y.test<- test.data[,1]
+      hat.Y <- as.matrix(X.test) %*% beta.path[l,]
+      PMSE.CV[l] <- PMSE.CV[l] + sum((hat.Y-Y.test)^2)/dim(X.test)[1]
+    } 
+    PMSE.CV[l] <- PMSE.CV[l]/k
+  }
+
+  result <- as.data.frame(cbind(lambda.v, PMSE.CV))
+  colnames(result) <- c("Lambda","PMSE.CV")
+  print(result)
+  plot(log(1+lambda.v), PMSE.CV)
+}
+
+X.val<-prostate[,1:8]
+Y.val<-prostate[,10]
+lambda.max <- 1e5
+n.lambdas <- 25
+lambda.v <- exp(seq(0,log(lambda.max+1),length=n.lambdas))-1
+k<-25
+
+
+ridge_k_fold(X.val,Y.val,lambda.v,k)
+```
+
